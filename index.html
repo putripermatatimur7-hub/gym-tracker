@@ -158,55 +158,61 @@ function showSettings(){
   document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));renderEditor();
 }
 function renderEditor(){
- let html="";
- Object.keys(program).forEach(day=>{
-  html+=`<div class="card" style="margin-bottom:12px"><h3 style="margin-top:0">${day}</h3><div id="editor-${day}">`;
-  program[day].forEach((e,i)=>{
-    html+=`<div class="grid" style="margin-bottom:8px;grid-template-columns:1.5fr .8fr .8fr auto">
-      <input id="p-${day}-${i}" value="${escapeHtml(e[0])}" placeholder="Exercise name">
-      <input id="s-${day}-${i}" value="${e[1]}" inputmode="numeric" placeholder="Sets">
-      <input id="r-${day}-${i}" value="${escapeHtml(e[2])}" placeholder="Rep range">
-      <button class="danger" onclick="removeExercise('${day}',${i})" title="Remove exercise">×</button>
-    </div>`;
+  let out="";
+  Object.keys(program).forEach(function(day){
+    out += '<div class="card" style="margin-bottom:12px">';
+    out += '<h3 style="margin-top:0">'+day+'</h3>';
+    program[day].forEach(function(e,i){
+      out += '<div style="display:grid;grid-template-columns:1.4fr .7fr .8fr auto;gap:7px;margin-bottom:8px">';
+      out += '<input id="p-'+day+'-'+i+'" value="'+esc(e[0])+'" placeholder="Exercise name">';
+      out += '<input id="s-'+day+'-'+i+'" value="'+esc(e[1])+'" inputmode="numeric" placeholder="Sets">';
+      out += '<input id="r-'+day+'-'+i+'" value="'+esc(e[2])+'" placeholder="Rep range">';
+      out += '<button class="danger" onclick="removeExercise(\''+day+'\','+i+')">×</button>';
+      out += '</div>';
+    });
+    out += '<button class="secondary" onclick="addExercise(\''+day+'\')">＋ Add Exercise</button>';
+    out += '</div>';
   });
-  html+=`</div><button class="secondary" onclick="addExercise('${day}')">＋ Add Exercise</button></div>`;
- });
- document.getElementById("programEditor").innerHTML=html;
+  document.getElementById("programEditor").innerHTML=out;
 }
-function escapeHtml(s){
- return String(s??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
-}
-function addExercise(day){
- saveEditorFields();
- program[day].push(["New Exercise",3,"8–12"]);
- save();
- renderEditor();
-}
-function removeExercise(day,index){
- if(program[day].length<=1){ alert("Keep at least one exercise in this day."); return; }
- saveEditorFields();
- const name=program[day][index][0];
- if(!confirm(`Remove "${name}" from ${day}? Existing workout history will stay safe.`)) return;
- program[day].splice(index,1);
- save();
- renderEditor();
+function esc(v){
+  return String(v==null?"":v).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
 }
 function saveEditorFields(){
- Object.keys(program).forEach(day=>program[day].forEach((e,i)=>{
-   const name=document.getElementById(`p-${day}-${i}`);
-   const sets=document.getElementById(`s-${day}-${i}`);
-   const reps=document.getElementById(`r-${day}-${i}`);
-   if(name) e[0]=name.value;
-   if(sets) e[1]=Math.max(1,parseInt(sets.value)||1);
-   if(reps) e[2]=reps.value;
- }));
+  Object.keys(program).forEach(function(day){
+    program[day].forEach(function(e,i){
+      var n=document.getElementById("p-"+day+"-"+i);
+      var s=document.getElementById("s-"+day+"-"+i);
+      var r=document.getElementById("r-"+day+"-"+i);
+      if(n) e[0]=n.value;
+      if(s) e[1]=Math.max(1,parseInt(s.value,10)||1);
+      if(r) e[2]=r.value;
+    });
+  });
+}
+function addExercise(day){
+  saveEditorFields();
+  program[day].push(["New Exercise",3,"8–12"]);
+  save();
+  renderEditor();
+}
+function removeExercise(day,index){
+  if(program[day].length<=1){ alert("Keep at least one exercise in this day."); return; }
+  saveEditorFields();
+  var name=program[day][index][0];
+  if(!confirm('Remove "'+name+'" from '+day+'? Existing workout history will stay safe.')) return;
+  program[day].splice(index,1);
+  save();
+  renderEditor();
 }
 function saveProgram(){
- saveEditorFields();
- save();
- alert("Program saved ✓");
- showPage("log");
- renderExerciseSelect();
+  saveEditorFields();
+  save();
+  alert("Program saved ✓");
+  showPage("log");
+  renderExerciseSelect();
+}
+renderExerciseSelect();
 }
 renderExerciseSelect();
 }
