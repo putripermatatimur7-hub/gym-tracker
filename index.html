@@ -135,5 +135,127 @@ function addExercise(day){syncProgram();data.program[day].push(["New Exercise",3
 function removeExercise(day,i){syncProgram();if(data.program[day].length<=1){alert("Keep at least one exercise.");return}if(confirm("Remove this exercise from the program? Existing history stays safe.")){data.program[day].splice(i,1);save();renderProgram()}}
 loadDays();
 </script>
+
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">
+<button class="btn" onclick="downloadSpreadsheet()">📊 Download Spreadsheet</button>
+<button class="btn" onclick="downloadImage()">🖼️ Download Image</button>
+</div>
+
+<script>
+function downloadSpreadsheet(){
+  const state = JSON.parse(localStorage.getItem('gymTrackerV2') || '{"logs":[]}');
+  const logs = Array.isArray(state.logs) ? state.logs : [];
+  const rows = [['Date','Day','Exercise','Set','Weight (kg)','Reps','RIR','Notes']];
+  logs.forEach(log => {
+    const sets = Array.isArray(log.sets) ? log.sets : [];
+    sets.forEach((s,i) => {
+      rows.push([
+        log.date || '',
+        log.day || '',
+        log.exercise || '',
+        i + 1,
+        s.weight ?? '',
+        s.reps ?? '',
+        s.rir ?? '',
+        s.notes ?? ''
+      ]);
+    });
+  });
+  const esc = v => '"' + String(v ?? '').replace(/"/g,'""') + '"';
+  const csv = '\uFEFF' + rows.map(r => r.map(esc).join(',')).join('\r\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'gym-tracker-history.csv';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+</script>
+
+<script>
+function downloadImage(){
+  const state = JSON.parse(localStorage.getItem('gymTrackerV2') || '{"logs":[]}');
+  const logs = Array.isArray(state.logs) ? state.logs : [];
+  const W = 1400;
+  const pad = 55;
+  const lineH = 42;
+  const titleH = 105;
+  const rows = [['Date','Day','Exercise','Set','Weight','Reps','RIR','Notes']];
+
+  logs.forEach(log => {
+    const sets = Array.isArray(log.sets) ? log.sets : [];
+    sets.forEach((s,i) => rows.push([
+      log.date || '', log.day || '', log.exercise || '', String(i+1),
+      s.weight ?? '', s.reps ?? '', s.rir ?? '', s.notes ?? ''
+    ]));
+  });
+
+  const cols = [
+    {name:'Date', w:145},
+    {name:'Day', w:125},
+    {name:'Exercise', w:320},
+    {name:'Set', w:70},
+    {name:'Weight', w:105},
+    {name:'Reps', w:90},
+    {name:'RIR', w:80},
+    {name:'Notes', w:365}
+  ];
+
+  const H = titleH + rows.length * lineH + pad;
+  const canvas = document.createElement('canvas');
+  canvas.width = W * 2;
+  canvas.height = H * 2;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(2,2);
+
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0,0,W,H);
+
+  ctx.fillStyle = '#111827';
+  ctx.font = 'bold 34px Arial';
+  ctx.fillText('Gym Tracker — Workout History', pad, 58);
+
+  ctx.font = '16px Arial';
+  ctx.fillStyle = '#6b7280';
+  ctx.fillText(new Date().toLocaleDateString(), pad, 85);
+
+  let y = titleH;
+  let x = pad;
+
+  rows.forEach((row, ri) => {
+    let xx = pad;
+    if (ri === 0) {
+      ctx.fillStyle = '#f3f4f6';
+      ctx.fillRect(pad, y, W - pad*2, lineH);
+    }
+    row.forEach((cell, ci) => {
+      ctx.strokeStyle = '#d1d5db';
+      ctx.strokeRect(xx, y, cols[ci].w, lineH);
+      ctx.fillStyle = ri === 0 ? '#111827' : '#374151';
+      ctx.font = ri === 0 ? 'bold 15px Arial' : '14px Arial';
+      let text = String(cell ?? '');
+      const maxChars = Math.max(5, Math.floor(cols[ci].w / 8));
+      if (text.length > maxChars) text = text.slice(0, maxChars - 1) + '…';
+      ctx.fillText(text, xx + 8, y + 27);
+      xx += cols[ci].w;
+    });
+    y += lineH;
+  });
+
+  canvas.toBlob(blob => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'gym-tracker-history.png';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  }, 'image/png');
+}
+</script>
 </body>
 </html>
