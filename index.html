@@ -69,7 +69,7 @@ button{border:0;border-radius:12px;padding:12px 15px;font-size:15px;font-weight:
 
 <script>
 
-const PROGRAM_VERSION="session1-v2";
+const PROGRAM_VERSION="session1-v3";
 const defaultProgram={
 "UPPER":[["Seated Shoulder Press",4,"10"],["Standing Incline Lateral Raise",4,"10"],["Incline Cable Bench Press",4,"10"],["Biceps Cable Curl",4,"10"]],
 "LOWER":[["Split Squat (Mobility)",1,"10 / leg"]],
@@ -80,7 +80,7 @@ let program;
 let logs;
 if(localStorage.getItem("gymProgramVersion")!==PROGRAM_VERSION){
   program=JSON.parse(JSON.stringify(defaultProgram));
-  logs=JSON.parse(session1Logs);
+  logs=JSON.parse(JSON.stringify(session1Logs));
   localStorage.setItem("gymProgram",JSON.stringify(program));
   localStorage.setItem("gymLogs",JSON.stringify(logs));
   localStorage.setItem("gymProgramVersion",PROGRAM_VERSION);
