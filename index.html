@@ -123,15 +123,17 @@ function renderProgram(){
 let out="";
 Object.keys(data.program).forEach(day=>{
 out+=`<div style="margin-bottom:20px"><div class="section-title">${esc(day)}</div>`;
-data.program[day].forEach((x,i)=>{out+=`<div class="program-row"><input id="n-${day}-${i}" value="${esc(x[0])}"><input id="s-${day}-${i}" value="${esc(x[1])}" inputmode="numeric"><input id="r-${day}-${i}" value="${esc(x[2])}"><button class="danger" onclick="removeExercise('${esc(day)}',${i})">×</button></div>`});
+data.program[day].forEach((x,i)=>{out+=`<div class="program-row"><input id="n-${day}-${i}" value="${esc(x[0])}" placeholder="Exercise name"><input id="s-${day}-${i}" value="${esc(x[1])}" inputmode="numeric" placeholder="Sets"><input id="r-${day}-${i}" value="${esc(x[2])}" placeholder="Rep range"><button class="danger" onclick="removeExercise('${esc(day)}',${i})">×</button></div>`});
 out+=`<button class="secondary" onclick="addExercise('${esc(day)}')">＋ Add Exercise</button></div>`;
 });
+out+=`<div style="position:sticky;bottom:10px;padding:10px 0;background:var(--bg,white);z-index:5"><button class="btn" onclick="saveProgramChanges()" style="width:100%;">✓ OK — Save Program</button></div>`;
 document.getElementById("programBox").innerHTML=out;
 }
 function syncProgram(){
-Object.keys(data.program).forEach(day=>data.program[day].forEach((x,i)=>{let n=document.getElementById(`n-${day}-${i}`),s=document.getElementById(`s-${day}-${i}`),r=document.getElementById(`r-${day}-${i}`);if(n)x[0]=n.value;if(s)x[1]=Math.max(1,parseInt(s.value)||1);if(r)x[2]=r.value;}));
+Object.keys(data.program).forEach(day=>data.program[day].forEach((x,i)=>{let n=document.getElementById(`n-${day}-${i}`),s=document.getElementById(`s-${day}-${i}`),r=document.getElementById(`r-${day}-${i}`);if(n)x[0]=n.value.trim()||"New Exercise";if(s)x[1]=Math.max(1,parseInt(s.value)||1);if(r)x[2]=r.value.trim()||"8–12";}));
 }
-function addExercise(day){syncProgram();data.program[day].push(["New Exercise",3,"8–12"]);save();renderProgram();}
+function saveProgramChanges(){syncProgram();save();loadDays();alert("Program saved ✓");}
+function addExercise(day){syncProgram();data.program[day].push(["New Exercise",3,"8–12"]);renderProgram();}
 function removeExercise(day,i){syncProgram();if(data.program[day].length<=1){alert("Keep at least one exercise.");return}if(confirm("Remove this exercise from the program? Existing history stays safe.")){data.program[day].splice(i,1);save();renderProgram()}}
 loadDays();
 </script>
